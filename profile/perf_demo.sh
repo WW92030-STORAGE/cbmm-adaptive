@@ -29,8 +29,7 @@ wait $PERF_PID
 
 echo "DONE"
 
-cd $PPWWDD
-
-perf script | sudo tee $PERF_REC > /dev/null
+# perf script -F time,pid,ip,addr,sym,dso | sudo tee $PPWWDD/$PERF_REC > /dev/null
+perf script -F addr | sudo tee $PPWWDD/$PERF_REC > /dev/null
 
 echo "FIN"

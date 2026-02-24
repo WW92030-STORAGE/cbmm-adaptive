@@ -1,9 +1,12 @@
 import subprocess
 import time
+import sys
+
 
 # Tester for framem
 
 def run_test(CMD = "./framem 1"):
+
     START = time.perf_counter_ns()
     END = None
 

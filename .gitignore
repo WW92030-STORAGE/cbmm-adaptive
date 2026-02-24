@@ -1,2 +1,7 @@
 VENV/*
 archive/*
+damon.data*
+profile/damon.data*
+perf.data*
+perf.out*
+damon.out*

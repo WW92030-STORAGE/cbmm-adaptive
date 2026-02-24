@@ -3,6 +3,8 @@ from CONSTANTS import BUCKET_ORDER, BUCKET_SHIFT, BUCKET_SIZE, NUM_BUCKETS
 from time import sleep
 import time
 import argparse, subprocess, atexit
+from execute import exec_
+import math
 
 # FAULT HISTOGRAM
 
@@ -115,9 +117,19 @@ def get_bucket_info(val):
 
 # Transition array: [AAccesses, FFaults, PPromotions]
 prior_transition_array = None
+prior_histograms = None
+
+# Metrics
+prior_fault_bi = [0] * NUM_BUCKETS
+prior_promo_bi = [0] * NUM_BUCKETS
+
+fault_decrease_numerator = 0
+fault_decrease_denominator = 0
 
 
 perf_rec = None
+
+UPDATE_HISTOS = False
 
 # Runner -- periodically procure a histogram and do updates
 if __name__ == "__main__":
@@ -130,11 +142,12 @@ if __name__ == "__main__":
     UB/LB - Attempts to change benefits to outside this range are ignored.
 
     """
-    PERIOD = 2
+    PERIOD = 4
     FIXED_VALUES = False
     PARALLEL = True
     NUM_THREADS = 4
     TRADE_VALUE = 10000
+    MODE = "progressive"
 
     parser = argparse.ArgumentParser(description = "put pid here")
     parser.add_argument('--workflow', type=str, default = "")
@@ -168,7 +181,80 @@ if __name__ == "__main__":
         
         END = time.perf_counter_ns()
         ELAPSED_NS = END - START
+        print("COLLECT MS:", ELAPSED_NS * 0.000001)
+
+
+        if UPDATE_HISTOS:
+            if MODE == "radicalist" or MODE == "progressive":
+                if prior_transition_array is None:
+                    prior_transition_array = [0] * NUM_BUCKETS
+                if prior_histograms is None:
+                    prior_histograms = []
+
+                pta = [i for i in prior_transition_array]
+                
+                RUNNING_WINDOW = 8
+                prior_histograms.append(fault_bi)
+                for i in range(NUM_BUCKETS):
+                    prior_transition_array[i] += fault_bi[i]
+                
+                while len(prior_histograms) > RUNNING_WINDOW:
+                    ph = prior_histograms[0]
+                    prior_histograms = prior_histograms[1:]
+
+                    for i in range(NUM_BUCKETS):
+                        prior_transition_array[i] -= ph[i]
+
+                if MODE == "radicalist":
+                    for i in range(NUM_BUCKETS):
+                        # increasing in faults
+                        # print(pta[i], prior_transition_array[i])
+                        if prior_transition_array[i] > pta[i]:
+                            cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 400000)
+                            exec_(cmd)
+                        elif prior_transition_array[i] < pta[i]:
+                            cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 100000)
+                            exec_(cmd)
+                if MODE == "progressive":
+                    for i in range(NUM_BUCKETS):
+                        # increasing in faults
+                        # print(pta[i], prior_transition_array[i])
+                        diff = prior_transition_array[i] - pta[i]
+
+                        # diff = math.sqrt(diff)
+
+                        diff = int(diff)
+                        cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), diff >= 0)
+                        exec_(cmd)
+
+        # Begin evaluate metrics
+
+        for i in range(NUM_BUCKETS):
+            if prior_promo_bi[i] > 0:
+                fault_decrease_denominator += 1
+                if fault_bi[i] < prior_fault_bi[i]:
+                    fault_decrease_numerator += 1
+
+        
+        prior_fault_bi = [i for i in fault_bi]
+        prior_promo_bi = [i for i in promo_bi]
+
+        # End evaluate metrics
+
+        END = time.perf_counter_ns()
+        ELAPSED_NS = END - START
         print("FULL MS:", ELAPSED_NS * 0.000001)
+
+
+        if fault_decrease_denominator > 0:
+            print("FAULT DECREASE RATE: " + str(fault_decrease_numerator / fault_decrease_denominator))
+
+                
+
+                
+
+            
+                
 
 
 

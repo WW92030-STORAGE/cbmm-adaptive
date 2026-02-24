@@ -1,8 +1,9 @@
 #!/bin/bash
 
 NTHREADS=16
+# NDOCS=8388608
 NDOCS=1048576
-NDOCS=65536
+# NDOCS=65536
 
 cd mongodb-benchmarking
 
