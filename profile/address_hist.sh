@@ -9,7 +9,8 @@ perf buildid-cache --purge-all
 
 # do stuff here
 cd ..
-./mongobench_run.sh & 
+# ./mongobench_run.sh & 
+sudo python3 tester.py &
 PID2=$!
 
 echo "Workflow: $PID2"

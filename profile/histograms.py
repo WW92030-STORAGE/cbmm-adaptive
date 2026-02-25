@@ -129,7 +129,7 @@ fault_decrease_denominator = 0
 
 perf_rec = None
 
-UPDATE_HISTOS = False
+UPDATE_HISTOS = True
 
 # Runner -- periodically procure a histogram and do updates
 if __name__ == "__main__":
@@ -224,8 +224,9 @@ if __name__ == "__main__":
                         # diff = math.sqrt(diff)
 
                         diff = int(diff)
-                        cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), diff >= 0)
-                        exec_(cmd)
+                        if diff != 0:
+                            cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), diff >= 0)
+                            exec_(cmd)
 
         # Begin evaluate metrics
 
