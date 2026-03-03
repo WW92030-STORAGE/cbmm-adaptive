@@ -5,6 +5,7 @@ import time
 import argparse, subprocess, atexit
 from execute import exec_
 import math
+import concurrent.futures as CF
 
 # FAULT HISTOGRAM
 
@@ -217,6 +218,7 @@ if __name__ == "__main__":
                             cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 100000)
                             exec_(cmd)
                 if MODE == "progressive":
+                    """
                     for i in range(NUM_BUCKETS):
                         # increasing in faults
                         # print(pta[i], prior_transition_array[i])
@@ -228,6 +230,22 @@ if __name__ == "__main__":
                         if diff != 0:
                             cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), diff >= 0)
                             exec_(cmd)
+                    """
+
+                    def modify_progressive(start_val, step):
+                        for i in range(start_val, NUM_BUCKETS, step):
+                            diff = prior_transition_array[i] - pta[i]
+
+                            # diff = math.sqrt(diff)
+
+                            diff = int(diff)
+                            if diff != 0:
+                                cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), diff >= 0)
+                                exec_(cmd)    
+                    with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+                        for i in range(NUM_THREADS):
+                            executor.submit(modify_progressive, i, NUM_THREADS)                       
+
             elif MODE == "capitalist":
                 if prior_transition_array is None:
                     prior_transition_array = [0] * NUM_BUCKETS
@@ -248,6 +266,8 @@ if __name__ == "__main__":
                     for i in range(NUM_BUCKETS):
                         prior_transition_array[i] -= ph[i]
 
+                """
+
                 for i in range(NUM_BUCKETS):
                     if (prior_promo_bi[i] > 0) == (prior_transition_array[i] > pta[i]):
                         cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 100000)
@@ -255,6 +275,19 @@ if __name__ == "__main__":
                     else:
                         cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 400000)
                         exec_(cmd)
+                """
+
+                def modify_capitalist(start_val, step):
+                    for i in range(start_val, NUM_BUCKETS, step):
+                        if (prior_promo_bi[i] > 0) == (prior_transition_array[i] > pta[i]):
+                            cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 100000)
+                            exec_(cmd)
+                        else:
+                            cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 400000)
+                            exec_(cmd)
+                with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+                    for i in range(NUM_THREADS):
+                        executor.submit(modify_capitalist, i, NUM_THREADS)
         # Begin evaluate metrics
 
         for i in range(NUM_BUCKETS):
