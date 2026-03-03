@@ -131,8 +131,7 @@ fdd_histo = [0] * NUM_BUCKETS
 
 perf_rec = None
 
-UPDATE_HISTOS = False
-
+UPDATE_HISTOS = True
 # Runner -- periodically procure a histogram and do updates
 if __name__ == "__main__":
     """
@@ -149,7 +148,7 @@ if __name__ == "__main__":
     PARALLEL = True
     NUM_THREADS = 4
     TRADE_VALUE = 10000
-    MODE = "progressive"
+    MODE = "capitalist"
 
     parser = argparse.ArgumentParser(description = "put pid here")
     parser.add_argument('--workflow', type=str, default = "")
@@ -229,7 +228,33 @@ if __name__ == "__main__":
                         if diff != 0:
                             cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), diff >= 0)
                             exec_(cmd)
+            elif MODE == "capitalist":
+                if prior_transition_array is None:
+                    prior_transition_array = [0] * NUM_BUCKETS
+                if prior_histograms is None:
+                    prior_histograms = []
 
+                pta = [i for i in prior_transition_array]
+                
+                RUNNING_WINDOW = 1
+                prior_histograms.append(fault_bi)
+                for i in range(NUM_BUCKETS):
+                    prior_transition_array[i] += fault_bi[i]
+                
+                while len(prior_histograms) > RUNNING_WINDOW:
+                    ph = prior_histograms[0]
+                    prior_histograms = prior_histograms[1:]
+
+                    for i in range(NUM_BUCKETS):
+                        prior_transition_array[i] -= ph[i]
+
+                for i in range(NUM_BUCKETS):
+                    if (prior_promo_bi[i] > 0) == (prior_transition_array[i] > pta[i]):
+                        cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 100000)
+                        exec_(cmd)
+                    else:
+                        cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 400000)
+                        exec_(cmd)
         # Begin evaluate metrics
 
         for i in range(NUM_BUCKETS):
