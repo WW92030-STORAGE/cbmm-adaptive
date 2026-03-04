@@ -34,6 +34,54 @@ int probe_handle_mm_fault(struct pt_regs *ctx)
 fault_b = BPF(text=fault_histogram_program)
 fault_b.attach_kprobe(event="handle_mm_fault", fn_name="probe_handle_mm_fault")
 
+fault_types_program = """
+#include <uapi/linux/ptrace.h>
+#include <linux/mm.h>
+
+struct fault_ctx {
+    u64 bucket;
+};
+
+BPF_HASH(inflight, u32, struct fault_ctx);
+BPF_HISTOGRAM(minor_faults, u64, """ + str(NUM_BUCKETS) + """);
+BPF_HISTOGRAM(major_faults, u64, """ + str(NUM_BUCKETS) + """);
+
+int kprobe__handle_mm_fault(struct pt_regs *ctx,
+                            struct vm_area_struct *vma,
+                            unsigned long address,
+                            unsigned int flags)
+{
+    u32 tid = bpf_get_current_pid_tgid();
+    struct fault_ctx fctx = {};
+    fctx.bucket = address >> """ + str(BUCKET_SHIFT) + """;
+    if (fctx.bucket >= """ + str(NUM_BUCKETS) + """)
+        fctx.bucket = """ + str(NUM_BUCKETS) + """ - 1;   // clamp
+    inflight.update(&tid, &fctx);
+    return 0;
+}
+
+int kretprobe__handle_mm_fault(struct pt_regs *ctx)
+{
+    u32 tid = bpf_get_current_pid_tgid();
+    struct fault_ctx *fctx = inflight.lookup(&tid);
+    if (!fctx)
+        return 0;
+
+    int ret = PT_REGS_RC(ctx);
+
+    if (ret & VM_FAULT_MAJOR)
+        major_faults.increment(fctx->bucket);
+    else
+        minor_faults.increment(fctx->bucket);
+
+    inflight.delete(&tid);
+    return 0;
+}
+
+"""
+
+# fault_types_b = BPF(text=fault_types_program)
+
 # PROMOTION HISTOGRAM
 
 
@@ -74,8 +122,14 @@ def print_linear_hist(clear_hist = True):
     fault_arr = fault_b.get_table("addr_hist")
     promo_arr = promo_b.get_table("addr_hist")
 
+    # minor_arr = fault_types_b.get_table("minor_faults")
+    # major_arr = fault_types_b.get_table("major_faults")
+
     fault_res = []
     promo_res = []
+
+    major_res = []
+    minor_res = []
 
     for i, v in fault_arr.items():
         count = v.value
@@ -99,11 +153,33 @@ def print_linear_hist(clear_hist = True):
         # print("%#16x - %#16x : %d" % (start, end, count))
 
         promo_res.append((start, end, count))
+    """
+    for i, v in major_arr.items():
+        count = v.value
+        if count == 0:
+            continue
+
+        start = i.value * BUCKET_SIZE
+        end = start + BUCKET_SIZE - 1
+
+        major_res.append((start, end, count))
+    for i, v in minor_arr.items():
+        count = v.value
+        if count == 0:
+            continue
+
+        start = i.value * BUCKET_SIZE
+        end = start + BUCKET_SIZE - 1
+
+        minor_res.append((start, end, count))
+    """
     if clear_hist:
         fault_arr.clear()
         promo_arr.clear()
+        # minor_arr.clear()
+        # major_arr.clear()
 
-    return fault_res, promo_res
+    return fault_res, promo_res, major_res, minor_res
 
 # Convert the histogram, (start, end, count), into a flat histogram with implicitly defined ranges as indices.
 def get_bucket_info(val):
@@ -123,6 +199,9 @@ prior_histograms = None
 # Metrics
 prior_fault_bi = [0] * NUM_BUCKETS
 prior_promo_bi = [0] * NUM_BUCKETS
+
+prior_major_bi = [0] * NUM_BUCKETS
+prior_minor_bi = [0] * NUM_BUCKETS
 
 fault_decrease_numerator = 0
 fault_decrease_denominator = 0
@@ -149,7 +228,8 @@ if __name__ == "__main__":
     PARALLEL = True
     NUM_THREADS = 4
     TRADE_VALUE = 10000
-    MODE = "capitalist"
+    THRESHOLD = 0
+    MODE = "progressive"
 
     parser = argparse.ArgumentParser(description = "put pid here")
     parser.add_argument('--workflow', type=str, default = "")
@@ -169,12 +249,16 @@ if __name__ == "__main__":
         START = time.perf_counter_ns()
 
         # Convert the histogram
-        fault, promo = print_linear_hist()
+        fault, promo, major, minor = print_linear_hist()
         fault_bi = get_bucket_info(fault)
         promo_bi = get_bucket_info(promo)
+        major_bi = get_bucket_info(major)
+        minor_bi = get_bucket_info(minor)
 
         print("FF", [str(i) + ": " + str(fault_bi[i]) + " | " for i in range(len(fault_bi)) if fault_bi[i] != 0])
         print("PP", [str(i) + ": " + str(promo_bi[i]) + " | " for i in range(len(promo_bi)) if promo_bi[i] != 0])
+        print("MA", [str(i) + ": " + str(major_bi[i]) + " | " for i in range(len(major_bi)) if major_bi[i] != 0])
+        print("MI", [str(i) + ": " + str(minor_bi[i]) + " | " for i in range(len(minor_bi)) if minor_bi[i] != 0])
 
         # do profiling here
 
@@ -187,51 +271,37 @@ if __name__ == "__main__":
 
 
         if UPDATE_HISTOS:
-            if MODE == "radicalist" or MODE == "progressive":
-                if prior_transition_array is None:
-                    prior_transition_array = [0] * NUM_BUCKETS
-                if prior_histograms is None:
-                    prior_histograms = []
+            if prior_transition_array is None:
+                prior_transition_array = [0] * NUM_BUCKETS
+            if prior_histograms is None:
+                prior_histograms = []
 
-                pta = [i for i in prior_transition_array]
+            pta = [i for i in prior_transition_array]
                 
-                RUNNING_WINDOW = 8
-                prior_histograms.append(fault_bi)
+            RUNNING_WINDOW = 8
+            prior_histograms.append(fault_bi)
+            for i in range(NUM_BUCKETS):
+                prior_transition_array[i] += fault_bi[i]
+                
+            while len(prior_histograms) > RUNNING_WINDOW:
+                ph = prior_histograms[0]
+                prior_histograms = prior_histograms[1:]
                 for i in range(NUM_BUCKETS):
-                    prior_transition_array[i] += fault_bi[i]
-                
-                while len(prior_histograms) > RUNNING_WINDOW:
-                    ph = prior_histograms[0]
-                    prior_histograms = prior_histograms[1:]
+                    prior_transition_array[i] -= ph[i]
+            if MODE == "radicalist" or MODE == "progressive":
 
-                    for i in range(NUM_BUCKETS):
-                        prior_transition_array[i] -= ph[i]
 
                 if MODE == "radicalist":
                     for i in range(NUM_BUCKETS):
                         # increasing in faults
                         # print(pta[i], prior_transition_array[i])
-                        if prior_transition_array[i] > pta[i]:
+                        if prior_transition_array[i] > pta[i] + THRESHOLD:
                             cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 400000)
                             exec_(cmd)
-                        elif prior_transition_array[i] < pta[i]:
+                        elif prior_transition_array[i] < pta[i] - THRESHOLD:
                             cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 100000)
                             exec_(cmd)
                 if MODE == "progressive":
-                    """
-                    for i in range(NUM_BUCKETS):
-                        # increasing in faults
-                        # print(pta[i], prior_transition_array[i])
-                        diff = prior_transition_array[i] - pta[i]
-
-                        # diff = math.sqrt(diff)
-
-                        diff = int(diff)
-                        if diff != 0:
-                            cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), diff >= 0)
-                            exec_(cmd)
-                    """
-
                     def modify_progressive(start_val, step):
                         for i in range(start_val, NUM_BUCKETS, step):
                             diff = prior_transition_array[i] - pta[i]
@@ -239,7 +309,7 @@ if __name__ == "__main__":
                             # diff = math.sqrt(diff)
 
                             diff = int(diff)
-                            if diff != 0:
+                            if diff != 0 and abs(diff) >= THRESHOLD:
                                 cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), diff >= 0)
                                 exec_(cmd)    
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
@@ -265,17 +335,6 @@ if __name__ == "__main__":
 
                     for i in range(NUM_BUCKETS):
                         prior_transition_array[i] -= ph[i]
-
-                """
-
-                for i in range(NUM_BUCKETS):
-                    if (prior_promo_bi[i] > 0) == (prior_transition_array[i] > pta[i]):
-                        cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 100000)
-                        exec_(cmd)
-                    else:
-                        cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 400000)
-                        exec_(cmd)
-                """
 
                 def modify_capitalist(start_val, step):
                     for i in range(start_val, NUM_BUCKETS, step):
