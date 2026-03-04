@@ -315,8 +315,8 @@ if __name__ == "__main__":
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
                         for i in range(NUM_THREADS):
                             executor.submit(modify_progressive, i, NUM_THREADS)    
-                if MODE == "adversarial":
-                    def modify_adversarial(start_val, step):
+                if MODE == "inverted_progressive":
+                    def modify_inverted_progressive(start_val, step):
                         for i in range(start_val, NUM_BUCKETS, step):
                             diff = prior_transition_array[i] - pta[i]
 
@@ -330,7 +330,7 @@ if __name__ == "__main__":
                         continue 
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
                         for i in range(NUM_THREADS):
-                            executor.submit(modify_adversarial, i, NUM_THREADS)   
+                            executor.submit(modify_inverted_progressive, i, NUM_THREADS)   
 
             elif MODE == "capitalist":
                 if prior_transition_array is None:

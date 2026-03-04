@@ -5,3 +5,6 @@ profile/damon.data*
 perf.data*
 perf.out*
 damon.out*
+ycsb/ycsb-mongodb-*
+ycsb-0.17.0/*
+ycsb-0.17.0.tar.gz
