@@ -208,9 +208,18 @@ fault_decrease_denominator = 0
 fdn_histo = [0] * NUM_BUCKETS
 fdd_histo = [0] * NUM_BUCKETS
 
+promo_decrease_numerator = 0
+promo_decrease_denominator = 0
+pdn_histo = [0] * NUM_BUCKETS
+pdd_histo = [0] * NUM_BUCKETS
+
+benefit_increase_histo = [False] * NUM_BUCKETS
+prior_benefit_inc = [False] * NUM_BUCKETS
+
 
 perf_rec = None
 
+# THIS IS THE VARIABLE THAT CONTROLS IF WE ARE READ ONLY OR IF WE ALSO UPDATE
 UPDATE_HISTOS = True
 # Runner -- periodically procure a histogram and do updates
 if __name__ == "__main__":
@@ -288,6 +297,8 @@ if __name__ == "__main__":
                 prior_histograms = prior_histograms[1:]
                 for i in range(NUM_BUCKETS):
                     prior_transition_array[i] -= ph[i]
+
+            benefit_increase_histo = [False] * NUM_BUCKETS
             if MODE == "radicalist" or MODE == "progressive" or MODE == "adversarial":
 
 
@@ -301,9 +312,11 @@ if __name__ == "__main__":
                             if prior_transition_array[i] > pta[i] + THRESHOLD:
                                 cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 400000)
                                 exec_(cmd)
+                                benefit_increase_histo[i] = True
                             elif prior_transition_array[i] < pta[i] - THRESHOLD:
                                 cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 100000)
                                 exec_(cmd)
+                                
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
                         for i in range(NUM_THREADS):
                             executor.submit(modify_radicalist, i, NUM_THREADS) 
@@ -318,6 +331,7 @@ if __name__ == "__main__":
 
                             diff = int(diff)
                             if diff != 0 and abs(diff) >= THRESHOLD:
+                                benefit_increase_histo[i] = diff > 0
                                 cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), 1 if diff >= 0 else 0)
                                 exec_(cmd)    
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
@@ -336,6 +350,7 @@ if __name__ == "__main__":
 
                             diff = int(diff)
                             if diff != 0 and abs(diff) >= THRESHOLD:
+                                benefit_increase_histo[i] = diff > 0
                                 cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), 1 if diff <= 0 else 0)
                                 exec_(cmd)   
                     if len(prior_histograms) < RUNNING_WINDOW:
@@ -383,9 +398,11 @@ if __name__ == "__main__":
                                     denom = int(denom * reduced_diff)
                                 else:
                                     num = int(num * reduced_diff)
+                                benefit_increase_histo[i] = (num > denom)
                                 cmd = "echo %d %d %d | sudo tee /proc/scale_benefits" % (i, num, denom)
                                 exec_(cmd)
                             elif diff != 0 and abs(diff) >= THRESHOLD:
+                                benefit_increase_histo[i] = diff <= 0
                                 cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), 1 if diff <= 0 else 0)
                                 exec_(cmd)
 
@@ -400,6 +417,7 @@ if __name__ == "__main__":
                             if prior_transition_array[i] == 0:
                                 continue
                             if prior_transition_array[i] != pta[i]:
+                                benefit_increase_histo[i] = pta[i] > prior_transition_array[i]
                                 cmd = "echo %d %d %d | sudo tee /proc/scale_benefits" % (i, pta[i], prior_transition_array[i])
                                 exec_(cmd)
 
@@ -415,10 +433,17 @@ if __name__ == "__main__":
                 if fault_bi[i] < prior_fault_bi[i]:
                     fault_decrease_numerator += 1
                     fdn_histo[i] += 1
+            if benefit_increase_histo[i]:
+                promo_decrease_denominator += 1
+                pdd_histo[i] += 1
+                if (promo_bi[i] < prior_promo_bi[i]):
+                    promo_decrease_numerator += 1
+                    pdn_histo[i] += 1
 
         
         prior_fault_bi = [i for i in fault_bi]
         prior_promo_bi = [i for i in promo_bi]
+        prior_benefit_inc = [i for i in benefit_increase_histo]
 
         # End evaluate metrics
 
@@ -430,7 +455,13 @@ if __name__ == "__main__":
         if fault_decrease_denominator > 0:
             print("FAULT DECREASE RATE: " + str(fault_decrease_numerator / fault_decrease_denominator))
 
-        print("FD", [str(i) + ": " + f"{(fdn_histo[i] / fdd_histo[i]):.4f}" + " | " for i in range(len(fdd_histo)) if fdd_histo[i] != 0])
+        print("FDR", [str(i) + ": " + f"{(fdn_histo[i] / fdd_histo[i]):.4f}" + " | " for i in range(len(fdd_histo)) if fdd_histo[i] != 0])
+
+        if promo_decrease_denominator > 0:
+            print("PROMO DECREASE RATE: " + str(promo_decrease_numerator / promo_decrease_denominator))
+
+        print("PDR", [str(i) + ": " + f"{(pdn_histo[i] / pdd_histo[i]):.4f}" + " | " for i in range(len(pdd_histo)) if pdd_histo[i] != 0])
+
 
         print("------------\n\n------------")
 

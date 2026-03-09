@@ -2,4 +2,8 @@
 
 sudo apt update
 sudo apt install -y build-essential linux-tools-common linux-tools-generic
-sudo cp /usr/lib/linux-tools-6.8.0-100/perf /usr/bin
+cd ~/scea_linux/tools/perf
+sudo make
+sudo make install
+
+sudo ln -s ~/scea_linux/tools/perf/perf /usr/local/bin/perf
