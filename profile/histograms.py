@@ -221,7 +221,7 @@ prior_benefit_inc = [False] * NUM_BUCKETS
 perf_rec = None
 
 # THIS IS THE VARIABLE THAT CONTROLS IF WE ARE READ ONLY OR IF WE ALSO UPDATE
-UPDATE_HISTOS = True
+UPDATE_HISTOS = False
 # Runner -- periodically procure a histogram and do updates
 if __name__ == "__main__":
     """
