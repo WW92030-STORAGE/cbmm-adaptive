@@ -6,6 +6,7 @@ import argparse, subprocess, atexit
 from execute import exec_
 import math
 import concurrent.futures as CF
+import cbmm_modules as cbmm
 
 # FAULT HISTOGRAM
 
@@ -235,7 +236,7 @@ if __name__ == "__main__":
     PERIOD = 4
     FIXED_VALUES = False
     PARALLEL = True
-    NUM_THREADS = 4
+    NUM_THREADS = 16
     TRADE_VALUE = 10000
     THRESHOLD = 0
     MODE = "progressive3"
@@ -310,12 +311,10 @@ if __name__ == "__main__":
                             # increasing in faults
                             # print(pta[i], prior_transition_array[i])
                             if prior_transition_array[i] > pta[i] + THRESHOLD:
-                                cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 400000)
-                                exec_(cmd)
+                                cbmm.SET_BENEFTS(i, 4000000)
                                 benefit_increase_histo[i] = True
                             elif prior_transition_array[i] < pta[i] - THRESHOLD:
-                                cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, 100000)
-                                exec_(cmd)
+                                cbmm.SET_BENEFITS(i, 1000000)
                                 
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
                         for i in range(NUM_THREADS):
@@ -332,8 +331,9 @@ if __name__ == "__main__":
                             diff = int(diff)
                             if diff != 0 and abs(diff) >= THRESHOLD:
                                 benefit_increase_histo[i] = diff > 0
-                                cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), 1 if diff >= 0 else 0)
-                                exec_(cmd)    
+                                cbmm.INCREASE_BENEFITS(i, diff)
+                                # cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), 1 if diff >= 0 else 0)
+                                # exec_(cmd)    
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
                         for i in range(NUM_THREADS):
                             executor.submit(modify_progressive, i, NUM_THREADS)    
@@ -351,8 +351,9 @@ if __name__ == "__main__":
                             diff = int(diff)
                             if diff != 0 and abs(diff) >= THRESHOLD:
                                 benefit_increase_histo[i] = diff > 0
-                                cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), 1 if diff <= 0 else 0)
-                                exec_(cmd)   
+                                cbmm.INCREASE_BENEFITS(i, -1 * diff)
+                                # cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), 1 if diff <= 0 else 0)
+                                # exec_(cmd)   
                     if len(prior_histograms) < RUNNING_WINDOW:
                         continue 
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
@@ -399,12 +400,14 @@ if __name__ == "__main__":
                                 else:
                                     num = int(num * reduced_diff)
                                 benefit_increase_histo[i] = (num > denom)
-                                cmd = "echo %d %d %d | sudo tee /proc/scale_benefits" % (i, num, denom)
-                                exec_(cmd)
+                                # cmd = "echo %d %d %d | sudo tee /proc/scale_benefits" % (i, num, denom)
+                                # exec_(cmd)
+                                cbmm.SCALE_BENEFITS(i, num, denom)
                             elif diff != 0 and abs(diff) >= THRESHOLD:
                                 benefit_increase_histo[i] = diff <= 0
-                                cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), 1 if diff <= 0 else 0)
-                                exec_(cmd)
+                                # cmd = "echo \"%d %d %d\" | sudo tee /proc/increase_benefits" % (i, abs(diff), 1 if diff <= 0 else 0)
+                                # exec_(cmd)
+                                cbmm.INCREASE_BENEFITS(i, -1 * diff)
 
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
                         for i in range(NUM_THREADS):
@@ -418,8 +421,9 @@ if __name__ == "__main__":
                                 continue
                             if prior_transition_array[i] != pta[i]:
                                 benefit_increase_histo[i] = pta[i] > prior_transition_array[i]
-                                cmd = "echo %d %d %d | sudo tee /proc/scale_benefits" % (i, pta[i], prior_transition_array[i])
-                                exec_(cmd)
+                                # cmd = "echo %d %d %d | sudo tee /proc/scale_benefits" % (i, pta[i], prior_transition_array[i])
+                                # exec_(cmd)
+                                cbmm.SCALE_BENEFITS(i, pta[i], prior_transition_array[i])
 
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
                         for i in range(NUM_THREADS):

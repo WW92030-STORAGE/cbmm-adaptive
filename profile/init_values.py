@@ -4,6 +4,7 @@ VA_ORDER = 48       # How many bits does the address space occupy?
 
 from execute import exec_
 import CONSTANTS
+import cbmm_modules as cbmm
 
 # Init a profile with evenly spread ranges and default benefit. 
 def set_all_zeros(BUCKET_ORDER = CONSTANTS.BUCKET_ORDER, benefit = 200000):
@@ -22,16 +23,19 @@ def set_all_zeros(BUCKET_ORDER = CONSTANTS.BUCKET_ORDER, benefit = 200000):
         END = START + BUCKET_SIZE - 1
 
         # set the start
-        cmd = "echo \"%d %d\" | sudo tee /proc/set_starts" % (i, START)
-        exec_(cmd)
+        # cmd = "echo \"%d %d\" | sudo tee /proc/set_starts" % (i, START)
+        # exec_(cmd)
+        cbmm.SET_STARTS(i, START)
 
         # set the end
-        cmd = "echo \"%d %d\" | sudo tee /proc/set_ends" % (i, END)
-        exec_(cmd)
+        # cmd = "echo \"%d %d\" | sudo tee /proc/set_ends" % (i, END)
+        # exec_(cmd)
+        cbmm.SET_ENDS(i, END)
 
         # set the benefit
-        cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, benefit)
-        exec_(cmd)
+        # cmd = "echo \"%d %d\" | sudo tee /proc/set_benefits" % (i, benefit)
+        # exec_(cmd)
+        cbmm.SET_BENEFITS(i, benefit)
 
         if i % int(math.sqrt(NUM_BUCKETS)) == 0:
             print("INIT VALUE ... " + str(i) + "/" + str(NUM_BUCKETS))
