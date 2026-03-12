@@ -217,6 +217,7 @@ pdd_histo = [0] * NUM_BUCKETS
 benefit_increase_histo = [False] * NUM_BUCKETS
 prior_benefit_inc = [False] * NUM_BUCKETS
 
+total_promos = [0] * NUM_BUCKETS
 
 perf_rec = None
 
@@ -265,10 +266,16 @@ if __name__ == "__main__":
         major_bi = get_bucket_info(major)
         minor_bi = get_bucket_info(minor)
 
+        for i in range(NUM_BUCKETS):
+            total_promos[i] += promo_bi[i]
+
         print("FF", [str(i) + ": " + str(fault_bi[i]) + " | " for i in range(len(fault_bi)) if fault_bi[i] != 0])
         print("PP", [str(i) + ": " + str(promo_bi[i]) + " | " for i in range(len(promo_bi)) if promo_bi[i] != 0])
         print("MA", [str(i) + ": " + str(major_bi[i]) + " | " for i in range(len(major_bi)) if major_bi[i] != 0])
         print("MI", [str(i) + ": " + str(minor_bi[i]) + " | " for i in range(len(minor_bi)) if minor_bi[i] != 0])
+        print("TP", [str(i) + ": " + str(total_promos[i]) + " | " for i in range(len(total_promos)) if total_promos[i] != 0])
+
+        print("TOTAL PROMOS", sum(total_promos))
 
         # do profiling here
 
@@ -361,25 +368,6 @@ if __name__ == "__main__":
                             executor.submit(modify_inverted_progressive, i, NUM_THREADS)   
 
             elif MODE == "progressive2" or MODE == "progressive3":
-                if prior_transition_array is None:
-                    prior_transition_array = [0] * NUM_BUCKETS
-                if prior_histograms is None:
-                    prior_histograms = []
-
-                pta = [i for i in prior_transition_array]
-                
-                RUNNING_WINDOW = 8
-                prior_histograms.append(fault_bi)
-                for i in range(NUM_BUCKETS):
-                    prior_transition_array[i] += fault_bi[i]
-                
-                while len(prior_histograms) > RUNNING_WINDOW:
-                    ph = prior_histograms[0]
-                    prior_histograms = prior_histograms[1:]
-
-                    for i in range(NUM_BUCKETS):
-                        prior_transition_array[i] -= ph[i]
-                
                 if MODE == "progressive2":
                     if len(prior_histograms) < RUNNING_WINDOW:
                         continue
