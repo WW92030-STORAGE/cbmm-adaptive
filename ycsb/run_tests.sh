@@ -17,6 +17,10 @@ PID=$!
 
 echo "Histogram updater: $PID" 
 
+cd ../damo/damo
+sudo ./damo monitor $PID2 & 
+PID3=$!
+
 wait $PID2
 
 echo "DONE"
