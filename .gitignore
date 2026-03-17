@@ -11,3 +11,5 @@ ycsb-0.17.0.tar.gz
 ycsb/VENV/*
 profile/VENV/*
 damo/*
+__pycache__/*
+profile/__pycache__/*
