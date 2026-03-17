@@ -17,8 +17,8 @@ PID=$!
 
 echo "Histogram updater: $PID" 
 
-cd ../damo/damo
-sudo ./damo monitor $PID2 & 
+cd ../damo/
+sudo ./damo record $PID2 --sample 1ms --aggr 500ms & 
 PID3=$!
 
 wait $PID2
@@ -27,5 +27,8 @@ echo "DONE"
 
 sudo kill $PID
 wait $PID
+
+sudo kill -INT $PID3
+wait $PID3
 
 echo "FIN"

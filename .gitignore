@@ -10,3 +10,4 @@ ycsb-0.17.0/*
 ycsb-0.17.0.tar.gz
 ycsb/VENV/*
 profile/VENV/*
+damo/*
