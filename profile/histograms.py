@@ -253,7 +253,14 @@ if __name__ == "__main__":
     while True:
         # Begoin damo record
 
+        damo_record = "sudo ../damo/damo record " + str(workflow_pid)
+        damo_proc = subprocess.Popen(damo_record.split())
+
         sleep(PERIOD)
+
+        damo_proc.terminate()
+
+        subprocess.Popen("./report_damo.sh".split())
 
         # End damo record
 
