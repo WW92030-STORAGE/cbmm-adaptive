@@ -1,8 +1,5 @@
 #!/bin/bash
 
-WARMUPS=4
-TESTS=16
-
 ./install_workload.sh
 
 cd ycsb-mongodb-binding-0.17.0
@@ -15,13 +12,15 @@ sleep 0.2
 
 # PID4=$(pgrep -P $PID2)
 
-while true; do
-    PID4=$(pgrep -P "$PID2" java | head -n 1)
-    if [ -n "$PID4" ]; then
-        break
-    fi
-    sleep 0.05
-done
+# while true; do
+#     PID4=$(pgrep -P "$PID2" java | head -n 1)
+#     if [ -n "$PID4" ]; then
+#         break
+#     fi
+#     sleep 0.05
+# done
+
+PID4=$(pidof mongod)
 
 ps -p $PID4 -o comm=
 
@@ -33,9 +32,9 @@ PID=$!
 
 echo "Histogram updater: $PID" 
 
-cd ../damo/
-sudo ./damo record $PID4 & 
-PID3=$!
+# cd ../damo/
+# sudo ./damo record $PID4 & 
+# PID3=$!
 
 # --sample 1ms --aggr 500ms
 
@@ -48,11 +47,14 @@ echo "DONE"
 sudo kill $PID
 wait $PID
 
+sudo ../damo/damo stop
+sudo ../damo/damo stop
+
 echo "FIN"
 echo "OUTER: $PID2"
 echo "INNER: $PID4"
 
-sudo kill -INT $PID3
-wait $PID3
+# sudo kill -INT $PID3
+# wait $PID3
 
 # sudo ./damo record "/users/wwang26/workloads/gups_hemem/gups-hotset-move 4 100000000 32 8 30 0"

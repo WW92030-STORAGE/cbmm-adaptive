@@ -7,6 +7,8 @@ from execute import exec_
 import math
 import concurrent.futures as CF
 import cbmm_modules as cbmm
+import threading
+from damon_utils import impart_workflow_pid_to_kdamonds
 
 # FAULT HISTOGRAM
 
@@ -219,10 +221,14 @@ prior_benefit_inc = [False] * NUM_BUCKETS
 
 total_promos = [0] * NUM_BUCKETS
 
-perf_rec = None
-
 # THIS IS THE VARIABLE THAT CONTROLS IF WE ARE READ ONLY OR IF WE ALSO UPDATE
-UPDATE_HISTOS = False
+UPDATE_HISTOS = True
+
+# THIS IS THE VALUE THAT CONTROLS IF WE DAMO ANYTHING
+DAMO_REC = True
+ 
+
+
 # Runner -- periodically procure a histogram and do updates
 if __name__ == "__main__":
     """
@@ -250,17 +256,24 @@ if __name__ == "__main__":
 
     print("PID:", workflow_pid)
 
+    impart_workflow_pid_to_kdamonds(workflow_pid)
+
+    if DAMO_REC:
+        subprocess.run("sudo ../damo/damo start --kdamonds kdamonds.json".split())
+        print("DAMO PROC OPENED")
     while True:
         # Begoin damo record
 
-        damo_record = "sudo ../damo/damo record " + str(workflow_pid)
-        damo_proc = subprocess.Popen(damo_record.split())
+        if DAMO_REC:
+            damo_record = "sudo ../damo/damo record"
+            damo_record_proc = subprocess.Popen(damo_record.split())
 
         sleep(PERIOD)
 
-        damo_proc.terminate()
-
-        subprocess.Popen("./report_damo.sh".split())
+        if DAMO_REC:
+            damo_record_proc.terminate()
+            damo_record_proc.wait()
+            subprocess.Popen("./report_damo.sh".split())
 
         # End damo record
 
@@ -274,6 +287,7 @@ if __name__ == "__main__":
         minor_bi = get_bucket_info(minor)
 
         for i in range(NUM_BUCKETS):
+
             total_promos[i] += promo_bi[i]
 
         print("FF", [str(i) + ": " + str(fault_bi[i]) + " | " for i in range(len(fault_bi)) if fault_bi[i] != 0])
@@ -480,22 +494,22 @@ More promotions implies: 1. Less faults 2. More accesses
 """
 
 def goodbye():
-    global perf_rec
     print("HISTOGRAM TERMINATED")
-    if perf_rec:
-        perf_rec.terminate()
 
-    print("FAULT DECREASE RATE:", str(fault_decrease_numerator / fault_decrease_denominator))
+    if DAMO_PROC is not None:
+        subprocess.run("sudo ../damo/damo stop")
+        print("DAMO_PROC TERMINATED")
+
+    FDR = str(fault_decrease_numerator / fault_decrease_denominator) if fault_decrease_denominator != 0 else "N/A"
+    print("FAULT DECREASE RATE:", FDR)
     print()
 
     with open('LOG.txt', 'a') as f:
         lines = [
             "HISTOGRAM TERMINATED",
-            "FAULT DECREASE RATE:" + str(fault_decrease_numerator / fault_decrease_denominator), 
+            "FAULT DECREASE RATE:" + FDR, 
             "FD" + str([str(i) + ": " + f"{(fdn_histo[i] / fdd_histo[i]):.4f}" + " | " for i in range(len(fdd_histo)) if fdd_histo[i] != 0])
         ]
-        f.writeLines(lines)
+        f.writelines(lines)
 def exit_handler():
     goodbye()
-
-atexit.register(exit_handler)
