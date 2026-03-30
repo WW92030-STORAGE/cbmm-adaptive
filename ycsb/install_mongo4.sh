@@ -13,8 +13,8 @@ make -j$(nproc)
 make install
 
 cd $PWDIR
+mkdir database
 wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.2.24.tgz
 tar -xvf mongodb-linux-x86_64-ubuntu1804-4.2.24.tgz
-cd mongodb-linux-x86_64-ubuntu1804-4.2.24/bin
 
 LD_LIBRARY_PATH=~/openssl-1.1/lib ./mongodb-linux-x86_64-ubuntu1804-4.2.24/bin/mongod --dbpath database
