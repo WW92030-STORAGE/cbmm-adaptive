@@ -1,0 +1,1 @@
+monitoring result file (['damon.data']) parsing failed (parsing damon.data failed (failed perf-script (Command '['perf', 'script', '--force', '-i', 'damon.data']' returned non-zero exit status 255.)))
