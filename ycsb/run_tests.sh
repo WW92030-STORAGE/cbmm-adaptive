@@ -1,11 +1,12 @@
 #!/bin/bash
 
-./install_workload.sh
+# ./install_workload.sh
 
+# sudo mongosh ycsb --eval "db.usertable.drop()"
 cd ycsb-mongodb-binding-0.17.0
 
 # ./bin/ycsb load mongodb-async -s -P workloads/workloada & 
-./bin/ycsb run mongodb-async -s -P workloads/workloadd & 
+./bin/ycsb run mongodb-async -s -P workloads/workloada -threads 16 -p recordcount=4194304 & 
 PID2=$!
 
 sleep 0.2
@@ -27,7 +28,7 @@ ps -p $PID4 -o comm=
 echo "Inner/Outer: $PID4 | $PID2"
 
 cd ../../profile
-sudo python3 histograms.py --workflow $PID4  & 
+sudo python3 damon_only.py --workflow $PID4  & 
 PID=$!
 
 echo "Histogram updater: $PID" 

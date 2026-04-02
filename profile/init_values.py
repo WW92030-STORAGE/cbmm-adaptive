@@ -44,4 +44,5 @@ def set_all_zeros(BUCKET_ORDER = CONSTANTS.BUCKET_ORDER, benefit = 200000):
 
 
 if __name__ == "__main__":
-    set_all_zeros()
+    # CHANGE THE DEFAULT VALUE HERE
+    set_all_zeros(benefit = 200000)       # 21531397

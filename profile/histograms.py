@@ -222,10 +222,10 @@ prior_benefit_inc = [False] * NUM_BUCKETS
 total_promos = [0] * NUM_BUCKETS
 
 # THIS IS THE VARIABLE THAT CONTROLS IF WE ARE READ ONLY OR IF WE ALSO UPDATE
-UPDATE_HISTOS = False
+UPDATE_HISTOS = True
 
 # THIS IS THE VALUE THAT CONTROLS IF WE DAMO ANYTHING
-DAMO_REC = True
+DAMO_REC = False
  
 
 
@@ -468,12 +468,12 @@ if __name__ == "__main__":
         if fault_decrease_denominator > 0:
             print("FAULT DECREASE RATE: " + str(fault_decrease_numerator / fault_decrease_denominator))
 
-        print("FDR", [str(i) + ": " + f"{(fdn_histo[i] / fdd_histo[i]):.4f}" + " | " for i in range(len(fdd_histo)) if fdd_histo[i] != 0])
+        # print("FDR", [str(i) + ": " + f"{(fdn_histo[i] / fdd_histo[i]):.4f}" + " | " for i in range(len(fdd_histo)) if fdd_histo[i] != 0])
 
         if promo_decrease_denominator > 0:
             print("PROMO DECREASE RATE: " + str(promo_decrease_numerator / promo_decrease_denominator))
 
-        print("PDR", [str(i) + ": " + f"{(pdn_histo[i] / pdd_histo[i]):.4f}" + " | " for i in range(len(pdd_histo)) if pdd_histo[i] != 0])
+        # print("PDR", [str(i) + ": " + f"{(pdn_histo[i] / pdd_histo[i]):.4f}" + " | " for i in range(len(pdd_histo)) if pdd_histo[i] != 0])
 
 
         print("------------\n\n------------")

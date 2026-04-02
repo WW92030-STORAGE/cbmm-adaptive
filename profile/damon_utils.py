@@ -33,8 +33,8 @@ def impart_workflow_pid_to_kdamonds(pid, region_count = 2 * NUM_BUCKETS):
                         }
                     },
                     "nr_regions": {
-                        "min": "2048",
-                        "max": "2048"
+                        "min": """ + '\"' + str(region_count) + '\"' + """,
+                        "max": """ + '\"' + str(region_count) + '\"' + """
                     },
                     "sample_control": {
                         "primitives_enabled": {

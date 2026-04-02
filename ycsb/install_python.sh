@@ -14,3 +14,5 @@ make
 sudo make install
 echo 'export PATH="/usr/local/python2.7/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
+
+# 16777216
