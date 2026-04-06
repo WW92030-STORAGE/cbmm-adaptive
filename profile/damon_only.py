@@ -12,7 +12,7 @@ from damon_utils import impart_workflow_pid_to_kdamonds
 NUM_BUCKETS = 256
 
 DAMO_REC = True
-DAMO_UPDATE = False
+DAMO_UPDATE = True
 
 # Runner -- periodically procure a histogram and do updates
 if __name__ == "__main__":

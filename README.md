@@ -50,7 +50,9 @@ sudo python3 init_values.py
 # 2. Then, run the actual workload.
 cd ../ycsb
 
-# If you have not installed the workload
+# To set the workload, change the -P value in install_workload.sh and run_tests.sh to workloads/<workload> e.g. workloads/workloada. You can also customize the actual workload files.
+
+# If you have not installed the workload.
 ./install_workload.sh
 
 # Run the actual workload.

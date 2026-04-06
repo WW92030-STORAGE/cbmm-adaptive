@@ -7,7 +7,7 @@ BUCKET_SHIFT = 48 - BUCKET_ORDER    # Log of how big each bucket is
 NUM_BUCKETS = 1 << BUCKET_ORDER  
 BUCKET_SIZE = 1 << BUCKET_SHIFT   # how big the bucket is, in terms of powers of 2 of the bucket size
 
-DEBUG = False
+DEBUG = True
 
 def exec_(cmd):
     return subprocess.run(cmd, shell = True,     
