@@ -22,6 +22,10 @@ def SCALE_BENEFITS(bucket, n, d):
     with open("/proc/scale_benefits", 'w') as FILE:
         FILE.write(str(bucket) + " " + str(n) + " " + str(d))
 
+def SET_PROF_SIZE(sz):
+    with open("/proc/set_prof_size", "w") as FILE:
+        FILE.write(str(sz))
+
 if __name__ == "__main__":
     SET_BENEFITS(0, 2000000)
     INCREASE_BENEFITS(0, -10000)

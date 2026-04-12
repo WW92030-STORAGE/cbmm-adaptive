@@ -6,6 +6,7 @@ perf.data*
 perf.out*
 damon.out*
 ycsb/ycsb-mongodb-*
+ycsb/ycsb-redis-*
 ycsb-0.17.0/*
 ycsb-0.17.0.tar.gz
 ycsb/VENV/*
@@ -16,3 +17,4 @@ profile/__pycache__/*
 ycsb/mongodb-linux*
 ycsb/database/*
 ycsb/redis-6.2.14/*
+*.rdb

@@ -8,6 +8,7 @@ import concurrent.futures as CF
 import cbmm_modules as cbmm
 import threading
 from damon_utils import impart_workflow_pid_to_kdamonds
+import os
 
 NUM_BUCKETS = 256
 
@@ -45,7 +46,7 @@ if __name__ == "__main__":
 
             if DAMO_REC:
                 damo_record = "sudo ../damo/damo record"
-                damo_record_proc = subprocess.Popen(damo_record.split())
+                damo_record_proc = subprocess.Popen(damo_record.split(), preexec_fn=os.setsid)
 
             sleep(PERIOD)
 
