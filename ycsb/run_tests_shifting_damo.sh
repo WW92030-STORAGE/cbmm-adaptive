@@ -2,7 +2,7 @@
 
 # 1. install a workload
 
-WL1=${1:-"workloada"}
+WL1=${1:-"workloadd"}
 WL2=${2:-"workloadb"}
 
 ./install_workload.sh $WL1
