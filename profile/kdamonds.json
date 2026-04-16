@@ -8,7 +8,7 @@
                     "ops": "vaddr",
                     "targets": [
                         {
-                            "pid": 39078,
+                            "pid": 38839,
                             "obsolete": false,
                             "regions": [
                                 {
@@ -30,8 +30,8 @@
                         }
                     },
                     "nr_regions": {
-                        "min": "256",
-                        "max": "256"
+                        "min": "512",
+                        "max": "512"
                     },
                     "sample_control": {
                         "primitives_enabled": {
