@@ -1,26 +1,44 @@
 
 
-CSV = "mongodb-just-huge"
+CSV = "canneal"
 
 def read_csv(csv = CSV):
     indent = "\t"
+    seb = {}
+    
     with open(csv + ".csv", 'r') as file:
-        with open(csv + ".dat", 'w') as output:
-            output.write("void init_values(void) {\n")
-            output.write(indent + "if (HAS_INIT) return;\n")
-            output.write(indent + "else HAS_INIT = true;\n")
-            output.write(indent + "printk(\"INIT VALUES\\n\");\n\n")
-            counter = 0
-            for line in file:
-                arr = line.strip().split()
-                output.write(indent + "STARTS[" + str(counter) + "] = " + arr[-4] + ";\n")
-                output.write(indent + "ENDS[" + str(counter) + "] = " + arr[-1] + ";\n")
-                output.write(indent + "BENEFITS[" + str(counter) + "] = " + arr[2] + ";\n")
+        for line in file:
+            arr = line.strip().split()
+            seb[(arr[-4], arr[-1], arr[2])] = 0
 
-                counter += 1
+    with open(csv + ".dat", 'w') as output:
+        output.write("void init_values(void) {\n")
+        output.write(indent + "if (HAS_INIT) return;\n")
+        output.write(indent + "else HAS_INIT = true;\n")
+        output.write(indent + "printk(\"INIT VALUES\\n\");\n\n")
+        counter = 0
 
-            output.write(indent + "PROFILE_SIZE = " + str(counter) + ";\n")
-            output.write("}\n")
+        for entry in seb:
+            arr = line.strip().split()
+            output.write(indent + "STARTS[" + str(counter) + "] = " + str(entry[0]) + ";\n")
+            output.write(indent + "ENDS[" + str(counter) + "] = " + str(entry[1]) + ";\n")
+            output.write(indent + "BENEFITS[" + str(counter) + "] = " + str(entry[2]) + ";\n")
+
+            counter += 1
+
+        output.write(indent + "PROFILE_SIZE = " + str(counter) + ";\n")
+        output.write("}\n")
+
+    with open(csv + "_py.txt", 'w') as output:
+        output.write("\tcbmm.SET_PROF_SIZE(" + str(len(seb)) + ")\n")
+        counter = 0
+        for entry in seb:
+            arr = line.strip().split()
+            output.write("\tcbmm.SET_STARTS(" + str(counter) + ", " + str(entry[0]) + ")\n")
+            output.write("\tcbmm.SET_ENDS(" + str(counter) + ", " + str(entry[1]) + ")\n")
+            output.write("\tcbmm.SET_BENEFITS(" + str(counter) + ", " + str(entry[2]) + ")\n")
+
+            counter += 1
 
 
 

@@ -92,8 +92,9 @@ cd ../ycsb
 
 ```
 
-## REDIS
+### NOTE - YOU MUST RUN `install_modules.sh` AND `run_mongo4.sh` ON EACH BOOT
 
-Deprecated
+## CANNEAL
 
-## NOTE - YOU MUST RUN `install_modules.sh` AND `run_mongo4.sh` ON EACH BOOT
+See `./parsec/`
+

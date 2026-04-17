@@ -1,4 +1,6 @@
-# ebpf4379
+# ycsb
+
+## WARNING - this might not be comprehensive. Use the main `README.md` instead.
 
 ```
 sudo chmod -R 777 . && sudo ./install_modules.sh && ./mongo_install.sh && ./mongobench_setup.sh && ./mongo_run.sh

@@ -18,3 +18,5 @@ ycsb/mongodb-linux*
 ycsb/database/*
 ycsb/redis-6.2.14/*
 *.rdb
+parsec/parsec-benchmark/*
+parsec/VENV/*
