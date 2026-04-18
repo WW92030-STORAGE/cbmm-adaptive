@@ -1,72 +1,35 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-constant = 0.001        # convert from us to ms
-data = np.array([
-    [26680.12156, 33497.95999, 34571.75685, 37343.29499], 
-    [26846.86908, 32987.02029, 34690.64632, 37170.5913]
-]) * constant
+constant = 0.001
 
-stdevs = np.array([
-    [219.3694902, 317.2550247, 462.999935, 783.3495378], 
-    [734.4577631, 565.8544794, 618.6369083, 272.9870165]
-]) * constant
+labels = ['CBMM-eBPF', 'Multiplicative', 'CBMM-DAMO', 'DAMO-Mult']
 
-data = data.T
-stdevs = stdevs.T
-
+motivation = True
+if not motivation:
+    data = np.array([269051.625, 266279.625, 260684.875, 255950.5]) * constant
+    stdevs = np.array([5794.428455, 7279.164884, 7501.768009, 5059.814706]) * constant
+else:
+    labels = ["0", "-5", "-10", "-20", "-30"]
+    data = np.array([264910.75, 264534.75, 259577.25, 263057.125, 266068]) * constant
+    stdevs = np.array([10585.70358, 13798.6055, 9852.335978, 10045.88183, 11245.3837]) * constant
 colors = ["#D5E8D4", "#FFE6CC", "#F8CECC", "#CDD9E9", "#F1E6C6", "#DBCFE1"]
 edge_colors = ["#82B366", "#D79B00", "#B85450", "#6C8EBF", "#D6B656", "#9673A6"]
 hatches = ["/", "x", "|", "\\", "+", "-"]
 markers = ["o", "^", "P", "s", "v", "^"]
 
-true_colors = [[colors[2], colors[3]]]
-true_hatches = [hatches[0], hatches[3]]
-true_edge_colors = [edge_colors[2], edge_colors[3]]
-
 true_colors = colors
 true_hatches = hatches
 true_edge_colors = edge_colors
 
-# String labels
-bars = [
-    "CBMM", "MULTIPLICATIVE" if ebpfmode else "DAMO-MULTIPLICATIVE"
-]
+plt.bar(labels, data, color = true_colors, edgecolor = edge_colors, yerr = stdevs, capsize = 4)
+plt.title('Avg. Runtime (s)')
+plt.xlabel('Policy')
+plt.ylabel('Runtime')
 
-blobs = [
-    "A", "B", "C", "D"
-]
+# plt.ylim(bottom = 200000 * constant, top = 300000 * constant)
 
-num_experiments = data.shape[0]
-num_points = data.shape[1]
-
-x = np.arange(num_experiments)
-bar_width = 0.15
-
-plt.rcParams["font.size"] = 20
-plt.figure()
-
-fig, ax = plt.subplots()
-
-print("NP", num_points)
-
-print(stdevs)
-
-for i in range(num_points):
-    offset = (i - num_points / 2) * bar_width + bar_width / 2
-    ax.bar(x + offset, data[:, i], width=bar_width, label=bars[i], color = true_colors[i], hatch = true_hatches[i], edgecolor = true_edge_colors[i], yerr = stdevs[:, i], capsize = 4)
-
-# Labels
-plt.xlabel('Workload (YCSB mongodb)')
-plt.ylabel('Throughput (kOps/s)')
-plt.title('')
-
-plt.ylim(bottom = 20, top = 40)
-
-plt.xticks(x, blobs)
-fig.legend(frameon=False, loc="upper center", ncol=2, bbox_to_anchor=(0.5, 0.95)) # Might need to change 1.06
-plt.subplots_adjust(top=0.8, bottom=0.2, left=0.2, right=0.95) # Might need to adjust these numbers slightly; don't use tight_layout
-
-plt.savefig("plot.pdf")
-plt.savefig("plot.png")
 plt.show()
+
+plt.savefig("plot.png")
+plt.savefig("plot.pdf")

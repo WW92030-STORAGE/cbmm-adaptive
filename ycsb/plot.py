@@ -13,7 +13,7 @@ stdevs = np.array([
 ]) * constant
 
 # Put eBPF data inside here
-ebpfmode = False
+ebpfmode = True
 if ebpfmode:
     data = np.array([
         [29680.04391, 37370.01265, 38192.25036, 39041.43682], 
@@ -74,7 +74,7 @@ plt.xlabel('Workload (YCSB mongodb)')
 plt.ylabel('Throughput (kOps/s)')
 plt.title('')
 
-plt.ylim(bottom = 20, top = 40)
+# plt.ylim(bottom = 20, top = 40)
 
 plt.xticks(x, blobs)
 fig.legend(frameon=False, loc="upper center", ncol=2, bbox_to_anchor=(0.5, 0.95)) # Might need to change 1.06

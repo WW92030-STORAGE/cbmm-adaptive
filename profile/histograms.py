@@ -222,7 +222,7 @@ prior_benefit_inc = [False] * NUM_BUCKETS
 total_promos = [0] * NUM_BUCKETS
 
 # THIS IS THE VARIABLE THAT CONTROLS IF WE ARE READ ONLY OR IF WE ALSO UPDATE
-UPDATE_HISTOS = True
+UPDATE_HISTOS = False
 
 # THIS IS THE VALUE THAT CONTROLS IF WE DAMO ANYTHING
 DAMO_REC = False
@@ -307,7 +307,8 @@ if __name__ == "__main__":
         ELAPSED_NS = END - START
         print("COLLECT MS:", ELAPSED_NS * 0.000001)
 
-
+        # BEGIN UPDATE HISTOS
+        # DO NOT ENABLE THIS WHEN DOING CBMM TESTS
         if UPDATE_HISTOS:
             if prior_transition_array is None:
                 prior_transition_array = [0] * NUM_BUCKETS
@@ -436,7 +437,10 @@ if __name__ == "__main__":
 
                     with CF.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
                         for i in range(NUM_THREADS):
-                            executor.submit(modify_progressive3, i, NUM_THREADS)
+                            executor.submit(modify_progressive3, i, NUM_THREADS)\
+
+        # END UPDATE HISTOS
+
         # Begin evaluate metrics
 
         for i in range(NUM_BUCKETS):

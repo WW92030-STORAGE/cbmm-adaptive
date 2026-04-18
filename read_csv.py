@@ -29,7 +29,7 @@ def read_csv(csv = CSV):
         output.write(indent + "PROFILE_SIZE = " + str(counter) + ";\n")
         output.write("}\n")
 
-    with open(csv + "_py.txt", 'w') as output:
+    with open(csv + "_py.dat", 'w') as output:
         output.write("\tcbmm.SET_PROF_SIZE(" + str(len(seb)) + ")\n")
         counter = 0
         for entry in seb:
@@ -39,6 +39,12 @@ def read_csv(csv = CSV):
             output.write("\tcbmm.SET_BENEFITS(" + str(counter) + ", " + str(entry[2]) + ")\n")
 
             counter += 1
+
+    with open(csv + "_py_list.dat", 'w') as output:
+        output.write("\tPOLICY = []\n")
+        for entry in seb:
+            arr = line.strip().split()
+            output.write("\tPOLICY.append((" + str(entry[0]) + ", " + str(entry[1]) + ", " + str(entry[2]) + "))\n")
 
 
 
