@@ -17,4 +17,4 @@ mkdir database
 wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.2.24.tgz
 tar -xvf mongodb-linux-x86_64-ubuntu1804-4.2.24.tgz
 
-LD_LIBRARY_PATH=~/openssl-1.1/lib ./mongodb-linux-x86_64-ubuntu1804-4.2.24/bin/mongod --dbpath database
+# LD_LIBRARY_PATH=~/openssl-1.1/lib ./mongodb-linux-x86_64-ubuntu1804-4.2.24/bin/mongod --dbpath database
