@@ -5,10 +5,10 @@ constant = 0.001
 
 labels = ['CBMM-eBPF', 'Multiplicative', 'CBMM-DAMO', 'DAMO-Mult']
 
-motivation = True
+motivation = False
 if not motivation:
-    data = np.array([269051.625, 266279.625, 260684.875, 255950.5]) * constant
-    stdevs = np.array([5794.428455, 7279.164884, 7501.768009, 5059.814706]) * constant
+    data = np.array([269051.625, 262324.5714, 260684.875, 255950.5]) * constant
+    stdevs = np.array([5794.428455, 10122.81822, 7501.768009, 5059.814706]) * constant
 else:
     labels = ["0", "-5", "-10", "-20", "-30"]
     data = np.array([264910.75, 264534.75, 259577.25, 263057.125, 266068]) * constant

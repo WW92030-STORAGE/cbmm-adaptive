@@ -1,26 +1,13 @@
-[OVERALL] Throughput(ops/sec) 38812.42944126738
-[READ] AverageLatency(us) 405.5943359295601
-[READ] 99thPercentileLatency(us) 987
-[CLEANUP] AverageLatency(us) 292.6875
-[CLEANUP] 99thPercentileLatency(us) 4647
-[INSERT] AverageLatency(us) 440.3265564527689
-[INSERT] 99thPercentileLatency(us) 1040
+[OVERALL] Throughput(ops/sec) 36390.882983246134
+[READ] AverageLatency(us) 431.2694784281203
+[READ] 99thPercentileLatency(us) 801
+[CLEANUP] AverageLatency(us) 293.5
+[CLEANUP] 99thPercentileLatency(us) 4659
+[UPDATE] AverageLatency(us) 498.4856387378729
+[UPDATE] 99thPercentileLatency(us) 881
 RELEVANT DATA
-38812.42944126738
-405.5943359295601
-440.3265564527689
-987
-1040
-[OVERALL] Throughput(ops/sec) 24398.822612357915
-[READ] AverageLatency(us) 588.9567130274501
-[READ] 99thPercentileLatency(us) 887
-[CLEANUP] AverageLatency(us) 440.1875
-[CLEANUP] 99thPercentileLatency(us) 7007
-[UPDATE] AverageLatency(us) 711.4858512329885
-[UPDATE] 99thPercentileLatency(us) 963
-RELEVANT DATA
-24398.822612357915
-588.9567130274501
-711.4858512329885
-887
-963
+36390.882983246134
+431.2694784281203
+498.4856387378729
+801
+881

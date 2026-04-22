@@ -427,7 +427,7 @@ if __name__ == "__main__":
                         continue
                     def modify_progressive3(start_val, step):
                         for i in range(start_val, NUM_BUCKETS, step):
-                            if prior_transition_array[i] == 0:
+                            if prior_transition_array[i] == 0 or pta[i] == 0:
                                 continue
                             if prior_transition_array[i] != pta[i]:
                                 benefit_increase_histo[i] = pta[i] > prior_transition_array[i]

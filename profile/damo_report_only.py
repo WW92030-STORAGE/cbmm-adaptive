@@ -11,7 +11,7 @@ DEBUG = False
 DO_NOTHING = False
 
 # CHANGE ME TO TRUE WHEN RUNNING CBMM 
-NO_UPDATES = False
+NO_UPDATES = True
 
 def exec_(cmd):
     return subprocess.run(cmd, shell = True,     
